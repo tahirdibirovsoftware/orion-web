@@ -35,39 +35,17 @@ const Logs: React.FC = () => {
         <table>
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Time</th>
-              <th>Alt 1</th>
-              <th>Alt 2</th>
-              <th>Temp</th>
-              <th>Lat</th>
-              <th>Long</th>
-              <th>GPS Alt</th>
-              <th>Press 1</th>
-              <th>Press 2</th>
-              <th>Voltage</th>
-              <th>Pitch</th>
-              <th>Roll</th>
-              <th>Yaw</th>
+              {Object.keys(logs[0] || {}).map((key) => (
+                <th key={key}>{key}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {logs.map((log) => (
               <tr key={log.packetid}>
-                <td>{log.packetid}</td>
-                <td>{log.missiontime}</td>
-                <td>{log.altitude1}</td>
-                <td>{log.altitude2}</td>
-                <td>{log.temp}</td>
-                <td>{log.gps1latitude}</td>
-                <td>{log.gps1longitude}</td>
-                <td>{log.gps1altitude}</td>
-                <td>{log.pressure1}</td>
-                <td>{log.pressure2}</td>
-                <td>{log.voltagelevel}</td>
-                <td>{log.pitch}</td>
-                <td>{log.roll}</td>
-                <td>{log.yaw ?? 'N/A'}</td>
+                {Object.entries(log).map(([key, value]) => (
+                  <td key={key}>{value?.toString() || 'N/A'}</td>
+                ))}
               </tr>
             ))}
           </tbody>

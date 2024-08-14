@@ -1,17 +1,19 @@
 @import '../../styles/variables';
 
 .Header {
-  background-color: $primary-color;
-  color: white;
+  background-color: $surface-color;
+  color: $text-color;
   padding: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   height: $header-height;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
   h1 {
     margin: 0;
     font-size: 1.5rem;
+    font-weight: bold;
   }
 
   .button-container {
@@ -20,15 +22,17 @@
 
     button {
       background-color: transparent;
-      border: 1px solid white;
-      color: white;
+      border: 1px solid $primary-color;
+      color: $primary-color;
       padding: 0.5rem 1rem;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: all 0.3s ease;
+      border-radius: 5px;
 
       &.active,
       &:hover {
-        background-color: rgba(255, 255, 255, 0.2);
+        background-color: $primary-color;
+        color: $text-color;
       }
     }
   }
