@@ -29,7 +29,6 @@ const MapUpdater: React.FC<{ center: Position }> = ({ center }) => {
 const Map: React.FC = () => {
   const [telemetryData, setTelemetryData] = useState<TelemetryData | null>(null);
   const [userPosition, setUserPosition] = useState<Position | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,24 +38,18 @@ const Map: React.FC = () => {
         setTelemetryData(data);
       } catch (error) {
         console.error('Error fetching telemetry data:', error);
-        setError('Failed to fetch telemetry data');
       }
     };
 
     const getUserPosition = () => {
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            setUserPosition({ lat: position.coords.latitude, lng: position.coords.longitude });
-          },
-          (error) => {
-            console.error('Error getting user position:', error);
-            setError('Failed to get user location. Please enable location services.');
-          }
-        );
-      } else {
-        setError('Geolocation is not supported by your browser');
-      }
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserPosition({ lat: position.coords.latitude, lng: position.coords.longitude });
+        },
+        (error) => {
+          console.error('Error getting user position:', error);
+        }
+      );
     };
 
     fetchData();
@@ -77,7 +70,6 @@ const Map: React.FC = () => {
     return R * c;
   };
 
-  if (error) return <div className="error-message">{error}</div>;
   if (!telemetryData || !userPosition) return <div>Loading...</div>;
 
   const satellitePosition: Position = {
@@ -89,7 +81,10 @@ const Map: React.FC = () => {
   return (
     <div className="Map">
       <MapContainer center={userPosition} zoom={13} style={{ height: '100%', width: '100%' }}>
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <TileLayer
+  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+  attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+/>
         <Marker position={userPosition} />
         <Marker position={satellitePosition} />
         <Polyline positions={[userPosition, satellitePosition]} />
