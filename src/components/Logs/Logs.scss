@@ -3,47 +3,108 @@
 .Logs {
   flex-grow: 1;
   overflow: hidden;
+  background-color: $surface-color;
+  padding: 1rem;
 
   .table-container {
-    height: calc(100vh - #{$header-height});
+    height: calc(100vh - #{$header-height} - 2rem);
     overflow-y: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    // Firefox
+    scrollbar-width: thin;
+    scrollbar-color: rgba($primary-color, 0.5) $surface-color;
+
+    // Webkit browsers (Chrome, Safari, newer versions of Edge)
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: $surface-color;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba($primary-color, 0.5);
+      border-radius: 6px;
+      border: 3px solid $surface-color;
+
+      &:hover {
+        background-color: $primary-color;
+      }
+    }
   }
 
   table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.875rem;
 
     th, td {
-      padding: 0.5rem;
+      padding: 1rem;
       text-align: left;
-      border-bottom: 1px solid $secondary-color;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     th {
-      background-color: $primary-color;
-      color: white;
+      background-color: rgba($primary-color, 0.1);
+      color: $primary-color;
       position: sticky;
       top: 0;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
     }
 
-    tr:nth-child(even) {
-      background-color: $background-color;
+    td {
+      color: $text-color-secondary;
+      transition: background-color 0.3s ease;
+    }
+
+    tr:hover td {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    // Highlight specific columns
+    .packetid, .missiontime, .gps1latitude, .gps1longitude {
+      font-weight: 600;
+      color: $text-color;
+    }
+
+    .altitude1, .altitude2, .temp {
+      color: $primary-color;
+    }
+  }
+
+  // Responsive adjustments
+  @media (max-width: $breakpoint-mobile) {
+    padding: 0.5rem;
+
+    .table-container {
+      height: calc(100vh - #{$header-height-mobile} - 1rem);
+    }
+
+    table {
+      font-size: 0.75rem;
+
+      th, td {
+        padding: 0.75rem 0.5rem;
+      }
+
+      th {
+        font-size: 0.7rem;
+      }
     }
   }
 }
 
-@media (max-width: $breakpoint-mobile) {
-  .Logs {
-    .table-container {
-      height: calc(100vh - #{$header-height-mobile});
-    }
-
-    table {
-      font-size: 0.8rem;
-
-      th, td {
-        padding: 0.3rem;
-      }
-    }
-  }
+// For Internet Explorer
+body {
+  scrollbar-face-color: rgba($primary-color, 0.5);
+  scrollbar-track-color: $surface-color;
+  scrollbar-arrow-color: $primary-color;
+  scrollbar-shadow-color: rgba($primary-color, 0.5);
 }

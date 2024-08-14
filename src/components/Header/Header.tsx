@@ -9,7 +9,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ activeComponent, setActiveComponent }) => {
   return (
     <header className="Header">
-      <h1>Orion</h1>
+      <h1>Orion<sup>&trade;</sup></h1>
       <div className="button-container">
         <button
           className={activeComponent === 'map' ? 'active' : ''}
