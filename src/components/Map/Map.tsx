@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -6,12 +5,15 @@ import L from 'leaflet';
 import { TelemetryData } from '../../types/telemetry';
 import './Map.scss';
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+// Ensure icon URLs are set
+if (L.Icon && L.Icon.Default && L.Icon.Default.prototype) {
+  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  });
+}
 
 interface Position {
   lat: number;
@@ -21,7 +23,9 @@ interface Position {
 const MapUpdater: React.FC<{ center: Position }> = ({ center }) => {
   const map = useMap();
   useEffect(() => {
-    map.setView(center, map.getZoom());
+    if (map && center) {
+      map.setView(center, map.getZoom());
+    }
   }, [center, map]);
   return null;
 };
@@ -35,11 +39,14 @@ const Map: React.FC = () => {
     const fetchData = async () => {
       try {
         const response = await fetch('https://orion-server-oek4.onrender.com/api/telemetry/latest');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data: TelemetryData = await response.json();
         setTelemetryData(data);
       } catch (error) {
         console.error('Error fetching telemetry data:', error);
-        setError('Failed to fetch telemetry data');
+        setError('Failed to fetch telemetry data. Please try again later.');
       }
     };
 
@@ -51,11 +58,11 @@ const Map: React.FC = () => {
           },
           (error) => {
             console.error('Error getting user position:', error);
-            setError('Failed to get user location. Please enable location services.');
+            setError('Failed to get user location. Please enable location services and try again.');
           }
         );
       } else {
-        setError('Geolocation is not supported by your browser');
+        setError('Geolocation is not supported by your browser. Please use a modern browser with location services.');
       }
     };
 
@@ -80,10 +87,16 @@ const Map: React.FC = () => {
   if (error) return <div className="error-message">{error}</div>;
   if (!telemetryData || !userPosition) return <div>Loading...</div>;
 
-  const satellitePosition: Position = {
-    lat: parseFloat(telemetryData.gps1latitude),
-    lng: parseFloat(telemetryData.gps1longitude)
-  };
+  const satellitePosition: Position | null = (() => {
+    const lat = parseFloat(telemetryData.gps1latitude);
+    const lng = parseFloat(telemetryData.gps1longitude);
+    return isNaN(lat) || isNaN(lng) ? null : { lat, lng };
+  })();
+
+  if (!satellitePosition) {
+    return <div className="error-message">Invalid satellite position data received.</div>;
+  }
+
   const distance = calculateDistance(userPosition, satellitePosition);
 
   return (
@@ -96,7 +109,7 @@ const Map: React.FC = () => {
         <MapUpdater center={satellitePosition} />
       </MapContainer>
       <div className="distance-info">
-        Distance: {distance.toFixed(2)} km
+        Distance: {isNaN(distance) ? 'N/A' : `${distance.toFixed(2)} km`}
       </div>
     </div>
   );

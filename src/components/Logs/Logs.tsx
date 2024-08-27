@@ -3,6 +3,8 @@ import { TelemetryData } from '../../types/telemetry';
 import './Logs.scss';
 
 const formatTitle = (key: string): string => {
+  if (typeof key !== 'string') return 'Unknown';
+  
   // Split the key by capital letters and numbers
   const words = key.split(/(?=[A-Z0-9])/).map(word => word.toLowerCase());
   
@@ -18,16 +20,25 @@ const formatTitle = (key: string): string => {
 
 const Logs: React.FC = () => {
   const [logs, setLogs] = useState<TelemetryData[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchLogs = async () => {
       try {
         const response = await fetch('https://orion-server-oek4.onrender.com/api/telemetry');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data: TelemetryData[] = await response.json();
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid data format received');
+        }
         setLogs(data);
+        setError(null);
       } catch (error) {
         console.error('Error fetching logs:', error);
+        setError('Failed to fetch logs. Please try again later.');
       }
     };
 
@@ -43,9 +54,15 @@ const Logs: React.FC = () => {
     }
   }, [logs]);
 
+  if (error) {
+    return <div className="Logs error">{error}</div>;
+  }
+
   if (logs.length === 0) {
     return <div className="Logs">Loading...</div>;
   }
+
+  const safeKeys = Object.keys(logs[0] || {});
 
   return (
     <div className="Logs">
@@ -53,19 +70,22 @@ const Logs: React.FC = () => {
         <table>
           <thead>
             <tr>
-              {Object.keys(logs[0]).map((key) => (
+              {safeKeys.map((key) => (
                 <th key={key}>{formatTitle(key)}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {logs.map((log) => (
-              <tr key={log.packetid}>
-                {Object.entries(log).map(([key, value]) => (
-                  <td key={key} className={key}>
-                    {value?.toString() || 'N/A'}
-                  </td>
-                ))}
+            {logs.map((log, index) => (
+              <tr key={log.packetid || index}>
+                {safeKeys.map((key) => {
+                  const value = log[key as keyof TelemetryData];
+                  return (
+                    <td key={key} className={key}>
+                      {value != null ? String(value) : 'N/A'}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>
